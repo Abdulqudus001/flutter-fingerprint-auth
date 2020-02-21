@@ -165,10 +165,17 @@ class _RegisterState extends State<Register> {
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(30.0),
                                   ),
-                                  onPressed: () {
+                                  onPressed: () async {
                                     if (_formKey.currentState.validate()) {
                                       final _user = User(username.text, email.text, password.text);
-                                      _user.addUser(_user);
+                                      bool isAdded = await _user.addUser(_user);
+                                      if (isAdded) {
+                                        Navigator.pop(context);
+                                      } else {
+                                        Scaffold.of(context).showSnackBar(SnackBar(
+                                          content: Text("Something went wrong"),
+                                        ));
+                                      }
                                     }
                                   },
                                 ),

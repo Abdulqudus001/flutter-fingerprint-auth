@@ -3,6 +3,7 @@ import 'package:auth/model/users.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import './signup.dart';
+import 'package:local_auth/local_auth.dart';
 
 class Login extends StatefulWidget {
   @override
@@ -14,7 +15,6 @@ class _LoginState extends State<Login> {
   bool _hidePassword = true;
   TextEditingController username = TextEditingController();
   TextEditingController password = TextEditingController();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -140,6 +140,7 @@ class _LoginState extends State<Login> {
                           ),
                           onPressed: () async {
                             if (_formKey.currentState.validate()) {
+                              await openDB();
                               User _user = await getUser(username.text);
                               if (_user.toMap()['password'] != password.text) {
                                 Scaffold.of(context).showSnackBar(SnackBar(
@@ -195,7 +196,20 @@ class _LoginState extends State<Login> {
                         ),
                       ),
                       RaisedButton(
-                        onPressed: () => debugPrint("sds"),
+                        onPressed: () async {
+                          var auth = LocalAuthentication();
+                          bool canUseBiometrics = await hasBiometrics();
+                          List availableBiometrics = await auth.getAvailableBiometrics();
+                          if (availableBiometrics.contains(BiometricType.fingerprint)) {
+                            bool didAuthenticate = await auth.authenticateWithBiometrics(
+                              localizedReason: 'Please authenticate to login',
+                              stickyAuth: true,
+                            );
+                            if (didAuthenticate) {
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
+                            }
+                          }
+                        },
                         child: Ink(
                           padding: EdgeInsets.all(7.0),
                           decoration: BoxDecoration(
@@ -248,6 +262,11 @@ class _LoginState extends State<Login> {
       ),
     );
   }
+}
+
+Future<bool> hasBiometrics() async{
+  final auth =  LocalAuthentication();
+  return await auth.canCheckBiometrics;
 }
 
 //Hey, your face glows so bright, I feel you could rule my world everywhere you go.

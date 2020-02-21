@@ -17,6 +17,18 @@ void main() async {
   );
 }
 
+Future<void> openDB() async {
+  _database = await openDatabase(
+      join(await getDatabasesPath(), 'users_database.db'),
+      onCreate: (db, version) {
+        return db.execute(
+            'CREATE TABLE users(id text, username text NOT NULL UNIQUE, email text NOT NULL UNIQUE, password text NOT NULL)'
+        );
+      },
+      version: 1
+  );
+}
+
 class User {
   String username;
   String email;
@@ -38,18 +50,6 @@ class User {
     };
   }
 
-  void openDB() async {
-    _database = await openDatabase(
-        join(await getDatabasesPath(), 'users_database.db'),
-        onCreate: (db, version) {
-          return db.execute(
-            'CREATE TABLE users(id text, username text NOT NULL UNIQUE, email text NOT NULL UNIQUE, password text NOT NULL)'
-          );
-        },
-        version: 1
-    );
-  }
-
   Future<void> delete() async {
     final Database db = await _database;
     await db.delete('users', where: 'username = ?', whereArgs: ['abdulqudus001']);
@@ -60,10 +60,10 @@ class User {
       await deleteDatabase(join(await getDatabasesPath(), 'users_database.db'));
   }
 
-  Future<void> addUser(User user) async {
+  Future<bool> addUser(User user) async {
     final Database db = await _database;
     await db.insert('users', user.toMap(), conflictAlgorithm: ConflictAlgorithm.fail);
-    print('Saved');
+    return true;
   }
 }
 
