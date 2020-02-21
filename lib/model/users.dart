@@ -19,11 +19,16 @@ void main() async {
 }
 
 class User {
-  final String username;
-  final String email;
-  final String password;
+  String username;
+  String email;
+  String password;
 
-  User({this.username, this.email, this.password});
+  User(String username, String email, String password) {
+    this.username = username;
+    this.email = email;
+    this.password = password;
+    openDB();
+  }
 
   Map<String, dynamic> toMap() {
     return {
@@ -36,39 +41,43 @@ class User {
 
   void openDB() async {
     _database = await openDatabase(
-        join(await getDatabasesPath(), 'user_database.db'),
+        join(await getDatabasesPath(), 'users_database.db'),
         onCreate: (db, version) {
           return db.execute(
-            'CREATE TABLE user(id text, username text, email text, password text)'
+            'CREATE TABLE users(id text, username text NOT NULL UNIQUE, email text NOT NULL UNIQUE, password text NOT NULL)'
           );
         },
         version: 1
     );
   }
 
-  Future<void> addUser(User user) async {
+  Future<void> delete() async {
     final Database db = await _database;
-    await db.insert('user', user.toMap(), conflictAlgorithm: ConflictAlgorithm.fail);
+    await db.delete('users', where: 'username = ?', whereArgs: ['abdulqudus001']);
     print('Saved');
   }
 
-  Future<User> getUser(String username) async {
-    final Database db = await _database;
-    List<Map> results = await db.query("user",
-        columns: ["id", "username", "email"],
-        where: 'username = ?',
-        whereArgs: [username]);
-
-    var user = results.first;
-
-    if (results.length > 0) {
-      return User(
-        username: user['username'],
-        email: user['email'],
-        password: user['password']
-      );
-    }
-    return null;
+  Future<void> dropTable() async {
+      await deleteDatabase(join(await getDatabasesPath(), 'users_database.db'));
   }
 
+  Future<void> addUser(User user) async {
+    final Database db = await _database;
+    await db.insert('users', user.toMap(), conflictAlgorithm: ConflictAlgorithm.fail);
+    print('Saved');
+  }
+}
+
+Future<User> getUser(String username) async {
+  final Database db = await _database;
+  List<Map> results = await db.query("users",
+      columns: ["username", "email", "password"],
+      where: 'username = ?',
+      whereArgs: [username]);
+
+  var user = results.first;
+  if (results.length > 0) {
+    return User(user['username'], user['email'], user['password']);
+  }
+  return null;
 }

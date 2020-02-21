@@ -1,3 +1,5 @@
+import 'package:auth/home.dart';
+import 'package:auth/model/users.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import './signup.dart';
@@ -10,6 +12,9 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   final _formKey = GlobalKey<FormState>();
   bool _hidePassword = true;
+  TextEditingController username = TextEditingController();
+  TextEditingController password = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -17,6 +22,7 @@ class _LoginState extends State<Login> {
         builder: (context) =>
         Center(
         child: Container(
+          constraints: BoxConstraints.expand(),
           padding: EdgeInsets.only(
             left: 30.0,
             right: 30.0
@@ -29,8 +35,9 @@ class _LoginState extends State<Login> {
               colors: [Color.fromRGBO(203, 98, 133, 1), Color.fromRGBO(84, 60, 94, 1)]
             ),
           ),
-          child: new Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: new Wrap(
+            alignment: WrapAlignment.center,
+            runAlignment: WrapAlignment.center,
             children: <Widget>[
               Image.asset(
                 'assets/logo.png',
@@ -42,6 +49,7 @@ class _LoginState extends State<Login> {
                 child: Column(
                   children: <Widget>[
                     TextFormField(
+                      controller: username,
                       decoration: InputDecoration(
                         prefixIcon: Icon(
                           Icons.person,
@@ -67,6 +75,7 @@ class _LoginState extends State<Login> {
                     ),
                     Padding(padding: const EdgeInsets.all(26.0)),
                     TextFormField(
+                      controller: password,
                       obscureText: _hidePassword,
                       decoration: InputDecoration(
                         errorStyle: TextStyle(
@@ -129,11 +138,16 @@ class _LoginState extends State<Login> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30.0),
                           ),
-                          onPressed: () {
+                          onPressed: () async {
                             if (_formKey.currentState.validate()) {
-                              Scaffold.of(context).showSnackBar(
-                                SnackBar(content: Text('Thank you for logging in. You can kindly go back'),)
-                              );
+                              User _user = await getUser(username.text);
+                              if (_user.toMap()['password'] != password.text) {
+                                Scaffold.of(context).showSnackBar(SnackBar(
+                                  content: Text("Invalid username or password"),
+                                ));
+                              } else {
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
+                              }
                             }
                           },
                         ),

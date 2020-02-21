@@ -167,8 +167,7 @@ class _RegisterState extends State<Register> {
                                   ),
                                   onPressed: () {
                                     if (_formKey.currentState.validate()) {
-                                      final _user = User(username: username.text, email: email.text, password: password.text);
-                                      _user.openDB();
+                                      final _user = User(username.text, email.text, password.text);
                                       _user.addUser(_user);
                                     }
                                   },
